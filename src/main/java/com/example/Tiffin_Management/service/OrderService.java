@@ -36,13 +36,23 @@ public class OrderService {
             MenuItem menuItem = menuItemRepository.findById(itemDTO.getMenuId())
                     .orElseThrow(() -> new RuntimeException("MenuItem not found"));
 
+            BigDecimal price;
+            if (itemDTO.getSellingPrice() != null) {
+                price = itemDTO.getSellingPrice();
+            } else {
+                price = menuItem.getPriceDefault();
+            }
+
+            System.out.println("REQUEST SELLING PRICE = " + itemDTO.getSellingPrice());
+            System.out.println("FINAL PRICE USED = " + price);
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setMenu(menuItem);
             orderItem.setQuantity(itemDTO.getQuantity());
-            orderItem.setSellingPrice(menuItem.getPriceDefault());
+            orderItem.setSellingPrice(price);
 
-            BigDecimal subtotal = menuItem.getPriceDefault().multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
+            BigDecimal subtotal = price.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
             orderItem.setItemSubtotal(subtotal);
 
             totalAmount = totalAmount.add(subtotal);

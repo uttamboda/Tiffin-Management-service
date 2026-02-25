@@ -13,6 +13,9 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User createUser(User user) {
+        if (user.getPhone() != null && userRepository.existsByPhone(user.getPhone())) {
+            throw new IllegalArgumentException("This phone number is already registered.");
+        }
         return userRepository.save(user);
     }
 

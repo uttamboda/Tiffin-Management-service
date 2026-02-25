@@ -6,4 +6,5 @@ import lombok.Data;
 public class OrderItemRequestDTO {
     private Long menuId;
     private Integer quantity;
+    private java.math.BigDecimal sellingPrice;
 }
