@@ -1,9 +1,14 @@
 package com.example.Tiffin_Management.service;
 
-import com.example.Tiffin_Management.dto.*;
+import com.example.Tiffin_Management.dto.request.*;
+import com.example.Tiffin_Management.dto.response.*;
 import com.example.Tiffin_Management.entity.*;
+import com.example.Tiffin_Management.exception.ResourceNotFoundException;
 import com.example.Tiffin_Management.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,8 +16,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -23,7 +31,8 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
         User user = userRepository.findById(orderRequestDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("User not found with id: " + orderRequestDTO.getUserId()));
 
         Order order = new Order();
         order.setUser(user);
@@ -32,9 +41,18 @@ public class OrderService {
 
         BigDecimal totalAmount = BigDecimal.ZERO;
 
+        List<Long> menuIds = orderRequestDTO.getItems().stream()
+                .map(OrderItemRequestDTO::getMenuId)
+                .collect(Collectors.toList());
+
+        Map<Long, MenuItem> menuItemMap = menuItemRepository.findAllById(menuIds).stream()
+                .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+
         for (OrderItemRequestDTO itemDTO : orderRequestDTO.getItems()) {
-            MenuItem menuItem = menuItemRepository.findById(itemDTO.getMenuId())
-                    .orElseThrow(() -> new RuntimeException("MenuItem not found"));
+            MenuItem menuItem = menuItemMap.get(itemDTO.getMenuId());
+            if (menuItem == null) {
+                throw new ResourceNotFoundException("MenuItem not found with id: " + itemDTO.getMenuId());
+            }
 
             BigDecimal price;
             if (itemDTO.getSellingPrice() != null) {
@@ -43,8 +61,7 @@ public class OrderService {
                 price = menuItem.getPriceDefault();
             }
 
-            System.out.println("REQUEST SELLING PRICE = " + itemDTO.getSellingPrice());
-            System.out.println("FINAL PRICE USED = " + price);
+            log.info("REQUEST SELLING PRICE = {}, FINAL PRICE USED = {}", itemDTO.getSellingPrice(), price);
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -65,22 +82,21 @@ public class OrderService {
         return mapToResponseDTO(savedOrder);
     }
 
-    public List<OrderResponseDTO> getAllOrders() {
-        return orderRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<OrderResponseDTO> getAllOrders(int page, int size) {
+        return orderRepository.findAll(PageRequest.of(page, size))
+                .map(this::mapToResponseDTO);
     }
 
     public OrderResponseDTO getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         return mapToResponseDTO(order);
     }
 
     @Transactional
     public void updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         order.setStatus(status);
         orderRepository.save(order);
     }

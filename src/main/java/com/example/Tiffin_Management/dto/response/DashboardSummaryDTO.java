@@ -1,4 +1,4 @@
-package com.example.Tiffin_Management.dto;
+package com.example.Tiffin_Management.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
