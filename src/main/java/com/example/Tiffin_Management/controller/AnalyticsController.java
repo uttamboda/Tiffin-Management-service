@@ -1,9 +1,9 @@
 package com.example.Tiffin_Management.controller;
 
-import com.example.Tiffin_Management.dto.DailyOrderCountDTO;
-import com.example.Tiffin_Management.dto.DashboardSummaryDTO;
-import com.example.Tiffin_Management.dto.MonthlyRevenueDTO;
-import com.example.Tiffin_Management.dto.TopCustomerDTO;
+import com.example.Tiffin_Management.dto.response.DailyOrderCountDTO;
+import com.example.Tiffin_Management.dto.response.DashboardSummaryDTO;
+import com.example.Tiffin_Management.dto.response.MonthlyRevenueDTO;
+import com.example.Tiffin_Management.dto.response.TopCustomerDTO;
 import com.example.Tiffin_Management.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
