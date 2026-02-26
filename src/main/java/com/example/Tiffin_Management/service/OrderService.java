@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,13 @@ public class OrderService {
 
         Order order = new Order();
         order.setUser(user);
-        order.setOrderDate(LocalDateTime.now());
+
+        if (orderRequestDTO.getOrderDate() != null) {
+            order.setOrderDate(orderRequestDTO.getOrderDate());
+        } else {
+            order.setOrderDate(LocalDate.now());
+        }
+
         order.setStatus("CREATED");
 
         BigDecimal totalAmount = BigDecimal.ZERO;
