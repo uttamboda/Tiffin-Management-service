@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,15 +24,14 @@ public class AnalyticsService {
     private final UserRepository userRepository;
 
     public DashboardSummaryDTO getDashboardSummary() {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        LocalDate today = LocalDate.now();
 
         Long totalUsers = userRepository.count();
         Long totalOrders = orderRepository.count();
-        Long todayOrders = orderRepository.countOrdersBetweenDates(startOfDay, endOfDay);
+        Long todayOrders = orderRepository.countByOrderDate(today);
 
         BigDecimal totalRevenue = orderRepository.getTotalRevenue();
-        BigDecimal todayRevenue = orderRepository.getRevenueBetweenDates(startOfDay, endOfDay);
+        BigDecimal todayRevenue = orderRepository.getDailyRevenue(today);
 
         String mostOrderedDish = orderItemRepository.findMostOrderedDish();
 
@@ -48,18 +46,18 @@ public class AnalyticsService {
     }
 
     public List<MonthlyRevenueDTO> getMonthlyRevenue() {
-        List<Object[]> results = orderRepository.getMonthlyRevenue();
         List<MonthlyRevenueDTO> response = new ArrayList<>();
-        for (Object[] row : results) {
-            String month = row[0].toString();
-            BigDecimal revenue = row[1] instanceof BigDecimal ? (BigDecimal) row[1] : new BigDecimal(row[1].toString());
-            response.add(new MonthlyRevenueDTO(month, revenue));
+        YearMonth currentMonth = YearMonth.now();
+        for (int i = 0; i < 6; i++) {
+            String yearMonthStr = currentMonth.minusMonths(i).toString();
+            BigDecimal revenue = orderRepository.getMonthlyRevenue(yearMonthStr);
+            response.add(new MonthlyRevenueDTO(yearMonthStr, revenue != null ? revenue : BigDecimal.ZERO));
         }
         return response;
     }
 
     public List<DailyOrderCountDTO> getDailyOrders(int days) {
-        LocalDateTime startDate = LocalDate.now().minusDays(days).atStartOfDay();
+        LocalDate startDate = LocalDate.now().minusDays(days);
         List<Object[]> results = orderRepository.getDailyOrders(startDate);
 
         List<DailyOrderCountDTO> response = new ArrayList<>();

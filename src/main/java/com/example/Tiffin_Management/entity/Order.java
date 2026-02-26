@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +28,8 @@ public class Order {
     private BigDecimal totalAmount;
 
     @Column(name = "order_date")
-    private LocalDateTime orderDate;
+    @Convert(converter = LocalDateStringConverter.class)
+    private LocalDate orderDate;
 
     private String status;
 
