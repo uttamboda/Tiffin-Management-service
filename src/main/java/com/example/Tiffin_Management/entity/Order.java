@@ -14,7 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(exclude = "items")
 @ToString(exclude = "items")
 @Entity
-@Table(name = "order_table")
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -23,22 +23,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         @Query("SELECT COUNT(o) FROM Order o WHERE o.orderDate = :date")
         Long countByOrderDate(@Param("date") LocalDate date);
 
-        @Query(value = "SELECT SUM(total_amount) FROM order_table WHERE strftime('%Y-%m', order_date) = :yearMonth", nativeQuery = true)
+        @Query(value = "SELECT SUM(total_amount) FROM orders WHERE strftime('%Y-%m', order_date) = :yearMonth", nativeQuery = true)
         BigDecimal getMonthlyRevenue(@Param("yearMonth") String yearMonth);
 
-        @Query(value = "SELECT COUNT(*) FROM order_table WHERE strftime('%Y-%m', order_date) = :yearMonth", nativeQuery = true)
+        @Query(value = "SELECT COUNT(*) FROM orders WHERE strftime('%Y-%m', order_date) = :yearMonth", nativeQuery = true)
         Long getMonthlyOrderCount(@Param("yearMonth") String yearMonth);
 
         @Query(value = "SELECT DATE(o.order_date) AS date, COUNT(o.id) AS orderCount " +
-                        "FROM order_table o " +
+                        "FROM orders o " +
                         "WHERE o.order_date >= :startDate AND o.order_date IS NOT NULL " +
                         "GROUP BY DATE(o.order_date) " +
                         "ORDER BY date DESC", nativeQuery = true)
         List<Object[]> getDailyOrders(@Param("startDate") LocalDate startDate);
 
         @Query(value = "SELECT u.name AS userName, COUNT(o.id) AS totalOrders, SUM(o.total_amount) AS totalSpent " +
-                        "FROM order_table o " +
-                        "JOIN user_table u ON o.user_id = u.id " +
+                        "FROM orders o " +
+                        "JOIN customers u ON o.user_id = u.id " +
                         "GROUP BY u.id, u.name " +
                         "ORDER BY totalSpent DESC " +
                         "LIMIT :limit", nativeQuery = true)
