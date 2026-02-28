@@ -15,26 +15,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MenuItemService {
     private final MenuItemRepository menuItemRepository;
+    private final ShopService shopService;
 
     public MenuItemResponseDTO createMenuItem(MenuItemRequestDTO requestDTO) {
         MenuItem menuItem = new MenuItem();
         menuItem.setDishName(requestDTO.getDishName());
         menuItem.setPriceDefault(requestDTO.getPriceDefault());
+        menuItem.setShop(shopService.getCurrentShop());
 
         MenuItem saved = menuItemRepository.save(menuItem);
         return mapToResponseDTO(saved);
     }
 
     public List<MenuItemResponseDTO> getAllMenuItems() {
-        return menuItemRepository.findAll()
+        Long shopId = shopService.getCurrentShop().getId();
+        return menuItemRepository.findAllByShop_Id(shopId)
                 .stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public MenuItemResponseDTO updateMenuItem(Long id, MenuItemRequestDTO requestDTO) {
-        MenuItem existing = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MenuItem not found with id: " + id));
+        Long shopId = shopService.getCurrentShop().getId();
+        MenuItem existing = menuItemRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("MenuItem not found with id: " + id + " in current shop"));
 
         existing.setDishName(requestDTO.getDishName());
         existing.setPriceDefault(requestDTO.getPriceDefault());
@@ -44,10 +49,11 @@ public class MenuItemService {
     }
 
     public void deleteMenuItem(Long id) {
-        if (!menuItemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("MenuItem not found with id: " + id);
-        }
-        menuItemRepository.deleteById(id);
+        Long shopId = shopService.getCurrentShop().getId();
+        MenuItem existing = menuItemRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("MenuItem not found with id: " + id + " in current shop"));
+        menuItemRepository.delete(existing);
     }
 
     private MenuItemResponseDTO mapToResponseDTO(MenuItem menuItem) {

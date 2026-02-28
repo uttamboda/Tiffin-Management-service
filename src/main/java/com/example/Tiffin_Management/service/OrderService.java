@@ -27,6 +27,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final MenuItemRepository menuItemRepository;
+    private final ShopService shopService;
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
@@ -36,6 +37,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setUser(user);
+        order.setShop(shopService.getCurrentShop());
 
         if (orderRequestDTO.getOrderDate() != null) {
             order.setOrderDate(orderRequestDTO.getOrderDate());
@@ -67,8 +69,6 @@ public class OrderService {
                 price = menuItem.getPriceDefault();
             }
 
-            log.info("REQUEST SELLING PRICE = {}, FINAL PRICE USED = {}", itemDTO.getSellingPrice(), price);
-
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setMenu(menuItem);
@@ -89,20 +89,25 @@ public class OrderService {
     }
 
     public Page<OrderResponseDTO> getAllOrders(int page, int size) {
-        return orderRepository.findAll(PageRequest.of(page, size))
+        Long shopId = shopService.getCurrentShop().getId();
+        return orderRepository.findAllByShop_Id(shopId, PageRequest.of(page, size))
                 .map(this::mapToResponseDTO);
     }
 
     public OrderResponseDTO getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        Long shopId = shopService.getCurrentShop().getId();
+        Order order = orderRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Order not found with id: " + id + " in current shop"));
         return mapToResponseDTO(order);
     }
 
     @Transactional
     public void updateOrderStatus(Long id, String status) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        Long shopId = shopService.getCurrentShop().getId();
+        Order order = orderRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Order not found with id: " + id + " in current shop"));
         order.setStatus(status);
         orderRepository.save(order);
     }
