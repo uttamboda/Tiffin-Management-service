@@ -7,6 +7,7 @@ import com.example.Tiffin_Management.dto.response.TopCustomerDTO;
 import com.example.Tiffin_Management.repository.OrderItemRepository;
 import com.example.Tiffin_Management.repository.OrderRepository;
 import com.example.Tiffin_Management.repository.UserRepository;
+import com.example.Tiffin_Management.entity.Shop;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,19 +34,26 @@ class AnalyticsServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private ShopService shopService;
+
     @InjectMocks
     private AnalyticsService analyticsService;
 
     @Test
     void getDashboardSummary_ReturnsData() {
-        when(userRepository.count()).thenReturn(100L);
-        when(orderRepository.count()).thenReturn(500L);
-        when(orderRepository.countByOrderDate(any(LocalDate.class)))
+        Shop shop = new Shop();
+        shop.setId(1L);
+        when(shopService.getCurrentShop()).thenReturn(shop);
+
+        when(userRepository.countByShop_Id(1L)).thenReturn(100L);
+        when(orderRepository.countByShop_Id(1L)).thenReturn(500L);
+        when(orderRepository.countByOrderDateAndShop_Id(any(LocalDate.class), eq(1L)))
                 .thenReturn(20L);
-        when(orderRepository.getTotalRevenue()).thenReturn(new BigDecimal("50000.00"));
-        when(orderRepository.getDailyRevenue(any(LocalDate.class)))
+        when(orderRepository.getTotalRevenue(1L)).thenReturn(new BigDecimal("50000.00"));
+        when(orderRepository.getDailyRevenue(any(LocalDate.class), eq(1L)))
                 .thenReturn(new BigDecimal("2000.00"));
-        when(orderItemRepository.findMostOrderedDish()).thenReturn("Chicken Tikka");
+        when(orderItemRepository.findMostOrderedDish(1L)).thenReturn("Chicken Tikka");
 
         DashboardSummaryDTO summary = analyticsService.getDashboardSummary();
 
@@ -57,12 +65,16 @@ class AnalyticsServiceTest {
         assertEquals(new BigDecimal("2000.00"), summary.getTodayRevenue());
         assertEquals("Chicken Tikka", summary.getMostOrderedDish());
 
-        verify(userRepository, times(1)).count();
+        verify(userRepository, times(1)).countByShop_Id(1L);
     }
 
     @Test
     void getMonthlyRevenue_ReturnsData() {
-        when(orderRepository.getMonthlyRevenue(anyString())).thenReturn(new BigDecimal("15000.00"));
+        Shop shop = new Shop();
+        shop.setId(1L);
+        when(shopService.getCurrentShop()).thenReturn(shop);
+
+        when(orderRepository.getMonthlyRevenue(anyString(), eq(1L))).thenReturn(new BigDecimal("15000.00"));
 
         List<MonthlyRevenueDTO> revenueList = analyticsService.getMonthlyRevenue();
 
@@ -73,10 +85,14 @@ class AnalyticsServiceTest {
 
     @Test
     void getDailyOrders_ReturnsData() {
+        Shop shop = new Shop();
+        shop.setId(1L);
+        when(shopService.getCurrentShop()).thenReturn(shop);
+
         Object[] row = { java.sql.Date.valueOf(LocalDate.now()), 15L };
         List<Object[]> queryResult = java.util.Collections.singletonList(row);
 
-        when(orderRepository.getDailyOrders(any(LocalDate.class))).thenReturn(queryResult);
+        when(orderRepository.getDailyOrders(any(LocalDate.class), eq(1L))).thenReturn(queryResult);
 
         List<DailyOrderCountDTO> dailyOrders = analyticsService.getDailyOrders(30);
 
@@ -88,10 +104,14 @@ class AnalyticsServiceTest {
 
     @Test
     void getTopCustomer_ReturnsData() {
+        Shop shop = new Shop();
+        shop.setId(1L);
+        when(shopService.getCurrentShop()).thenReturn(shop);
+
         Object[] row = { "Test User", 50L, new BigDecimal("10000.00") };
         List<Object[]> queryResult = java.util.Collections.singletonList(row);
 
-        when(orderRepository.getTopCustomers(1)).thenReturn(queryResult);
+        when(orderRepository.getTopCustomers(1, 1L)).thenReturn(queryResult);
 
         TopCustomerDTO topCustomer = analyticsService.getTopCustomer();
 

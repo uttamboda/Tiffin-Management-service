@@ -31,5 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
-mydatabase.db
-spring_boot.log
+
+# database
+*.db
+
+.log

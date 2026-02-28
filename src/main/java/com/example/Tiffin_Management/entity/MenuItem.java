@@ -17,4 +17,8 @@ public class MenuItem {
 
     @Column(name = "price_defulat") // Deliberate typo matching database exactly
     private BigDecimal priceDefault;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
 }
