@@ -32,4 +32,14 @@ public class TenantController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        try {
+            tenantService.logout(token);
+            return ResponseEntity.ok("Successfully logged out");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to logout");
+        }
+    }
 }

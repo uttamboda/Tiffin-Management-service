@@ -9,4 +9,6 @@ public interface TenantService {
     TenantResponseDTO register(TenantRequestDTO dto);
 
     TokenResponseDTO login(TenantLoginRequestDTO dto);
+
+    void logout(String token);
 }
