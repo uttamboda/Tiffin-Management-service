@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    boolean existsByPhone(String phone);
 
     Page<User> findAllByShop_Id(Long shopId, Pageable pageable);
 

@@ -3,7 +3,6 @@ package com.example.Tiffin_Management.service;
 import com.example.Tiffin_Management.dto.request.UserRequestDTO;
 import com.example.Tiffin_Management.dto.response.UserResponseDTO;
 import com.example.Tiffin_Management.entity.User;
-import com.example.Tiffin_Management.exception.BadRequestException;
 import com.example.Tiffin_Management.repository.UserRepository;
 import com.example.Tiffin_Management.service.ShopService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +17,6 @@ public class UserService {
     private final ShopService shopService;
 
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if (userRequestDTO.getPhone() != null && userRepository.existsByPhone(userRequestDTO.getPhone())) {
-            throw new BadRequestException("This phone number is already registered.");
-        }
-
         User user = new User();
         user.setName(userRequestDTO.getName());
         user.setPhone(userRequestDTO.getPhone());
