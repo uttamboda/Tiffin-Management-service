@@ -1,0 +1,23 @@
+name: Deploy Spring Boot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Hostinger VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/Tiffin-Management-service
+            git pull origin main
+            ./mvnw clean package
+
+            pkill -f 'Tiffin-Management' || true
+            nohup java -jar target/Tiffin-Management-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
