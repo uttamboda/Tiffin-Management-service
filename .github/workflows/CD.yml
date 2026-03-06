@@ -20,4 +20,4 @@ jobs:
             ./mvnw clean package
 
             pkill -f 'Tiffin-Management' || true
-            nohup java -jar target/Tiffin-Management-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            nohup java -jar target/Tiffin-Management-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & sleep 5
